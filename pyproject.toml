@@ -1,0 +1,21 @@
+[project]
+name = "my-py-proj"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "OmkarTerbhai", email = "omkarterbhai@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "groq>=1.6.0",
+    "ipykernel>=7.3.0",
+    "python-dotenv>=1.2.2",
+]
+
+[project.scripts]
+my-py-proj = "my_py_proj:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
