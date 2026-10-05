@@ -4,7 +4,6 @@ from util.stock_utils import get_stock_details;
 from dotenv import load_dotenv;
 import os;
 
-
 load_dotenv();
 
 llm = ChatGroq(
@@ -16,17 +15,13 @@ llm = ChatGroq(
 agent = create_agent(
     model=llm,
     tools=[get_stock_details],
-    system_prompt="You are expert at stock analysis. You take company name and find its stock symbol first and then call the tool with that symbol"
+    system_prompt=""
 );
-
+query: str = input();
 res = agent.invoke({
         "messages" : [
-            {"role": "user", "content": "Compare stock price of RELIANCE and ADANIPORTS"}
+            {"role": "user", "content": query}
         ]
 });
 
 print(res["messages"][-1].content);
-
-#
-# for msg in res["messages"] :
-#     print(msg)
