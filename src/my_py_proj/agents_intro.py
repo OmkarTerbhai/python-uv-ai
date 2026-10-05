@@ -1,22 +1,7 @@
 from util.llm_utils import *;
 from util.weather_schema import WEATHER_SCHEMA;
 import json
-
-WEATHER_DATA = {
-    "london": {"celcius": 22, "sky": "cloudy"},
-    "paris": {"celcius": 24, "sky": "sunny"},
-    "tallinn": {"celcius": 28, "sky": "sunny"},
-    "moscow": {"celcius": 18, "sky": "rainy"},
-    "tokyo": {"celcius": 30, "sky": "sunny"},
-    "beijing": {"celcius": 26, "sky": "cloudy"},
-    "new york": {"celcius": 28, "sky": "sunny"},
-    "mumbai": {"celcius": 32, "sky": "sunny"},
-    "cape town": {"celcius": 16, "sky": "cloudy"},
-    "sydney": {"celcius": 20, "sky": "sunny"},
-    "rio de janeiro": {"celcius": 22, "sky": "cloudy"},
-    "cairo": {"celcius": 24, "sky": "sunny"},
-    "mexico city": {"celcius": 20, "sky": "cloudy"},
-}
+from util.weather_data import WEATHER_DATA;
 
 def get_weather_data(city: str) -> str :
     """Get the weather for a particular city"""
@@ -32,7 +17,7 @@ TOOLS = {
     "get_weather_data": get_weather_data
 }
 
-def get_tools_llm_reply(prompt: str) :
+def get_llm_reply(prompt: str) :
     client = get_client(get_llm_provider());
 
     messages : list[dict[str, str]] = [];
@@ -41,6 +26,10 @@ def get_tools_llm_reply(prompt: str) :
         "content": prompt
     });
 
+    return agent_loop(client, messages);
+
+
+def agent_loop(client, messages: list[dict[str, str]]) :
     while True :
 
         res = client.chat.completions.create(
@@ -59,23 +48,25 @@ def get_tools_llm_reply(prompt: str) :
             "tool_calls": raw.tool_calls
         });
 
+        append_tool_call_result(raw, messages);
 
 
-        for tool_call in raw.tool_calls :
-            tool_id = tool_call.id;
-            tool_func_name = tool_call.function.name;
-            tool_func_args = json.loads(tool_call.function.arguments);
+def append_tool_call_result(raw, messages: list[dict[str, str]]):
+    for tool_call in raw.tool_calls:
+        tool_id = tool_call.id;
+        tool_func_name = tool_call.function.name;
+        tool_func_args = json.loads(tool_call.function.arguments);
 
-            if tool_func_name not in TOOLS :
-                raise ValueError("Func not found");
+        if tool_func_name not in TOOLS:
+            raise ValueError("Func not found");
 
-            tool_func = TOOLS[tool_func_name];
-            result = tool_func(**tool_func_args);
+        tool_func = TOOLS[tool_func_name];
+        result = tool_func(**tool_func_args);
 
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_id,
-                "content": result
-            })
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_id,
+            "content": result
+        })
 
-print(get_tools_llm_reply("What is the weather right now in Tokyo"));
+print(get_llm_reply(input()));
